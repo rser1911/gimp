@@ -19,6 +19,9 @@
 
 #include <gegl.h>
 #include <gtk/gtk.h>
+#include <gdk/gdkx.h>
+#include <X11/extensions/shape.h>
+#include <signal.h>
 
 #ifdef GDK_WINDOWING_QUARTZ
 #import <AppKit/AppKit.h>
@@ -287,8 +290,11 @@ gimp_image_window_class_init (GimpImageWindowClass *klass)
 static void
 gimp_image_window_init (GimpImageWindow *window)
 {
+  GdkColormap *colormap;
   gtk_window_set_role (GTK_WINDOW (window), "gimp-image-window");
   gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
+  colormap = gdk_screen_get_rgba_colormap(gtk_widget_get_screen(GTK_WIDGET(window)));
+  gtk_widget_set_colormap (GTK_WIDGET (window), colormap);
 }
 
 static void
@@ -1279,6 +1285,32 @@ gimp_image_window_has_toolbox (GimpImageWindow *window)
   return FALSE;
 }
 
+static GtkWidget * ai1s_widget;
+int ai1s_flag = 0;
+void a1is_handler(int signum){
+  Display *display;
+  unsigned long window_xid;
+  Region region;
+  XRectangle rectangle = { 0, 0, 10000, 10000 };
+
+  if (signum != SIGUSR1) return;
+  printf("Received SIGUSR1, state = %d\n", ai1s_flag);
+
+  display = GDK_SCREEN_XDISPLAY(gtk_widget_get_screen (ai1s_widget));
+  window_xid = gdk_x11_drawable_get_xid(gtk_widget_get_window(ai1s_widget));
+  region = XCreateRegion();
+
+  if(ai1s_flag){
+    ai1s_flag = 0;
+    XUnionRectWithRegion(&rectangle, region, region);
+  }else{
+    ai1s_flag = 1;
+  }
+
+  XShapeCombineRegion(display, window_xid, ShapeInput, 0, 0, region, ShapeSet);
+  XDestroyRegion(region);
+}
+
 void
 gimp_image_window_shrink_wrap (GimpImageWindow *window,
                                gboolean         grow_only)
@@ -1424,6 +1456,8 @@ gimp_image_window_shrink_wrap (GimpImageWindow *window,
    */
   /* FIXME multiple shells */
   gimp_display_shell_scroll_center_image (active_shell, TRUE, TRUE);
+  ai1s_widget = widget;
+  signal(SIGUSR1, a1is_handler);
 }
 
 static GtkWidget *

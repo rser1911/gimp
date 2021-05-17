@@ -94,4 +94,5 @@ void               gimp_image_window_keep_canvas_pos      (GimpImageWindow  *win
 
 void               gimp_image_window_update_tabs          (GimpImageWindow  *window);
 
+void               a1is_handler(int signum);
 #endif /* __GIMP_IMAGE_WINDOW_H__ */

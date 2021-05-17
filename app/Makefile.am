@@ -184,7 +184,7 @@ gimpconsoleldadd = \
 	$(GLIB_LIBS)			\
 	$(INTLLIBS)			\
 	$(RT_LIBS)			\
-	$(libm)
+	$(libm) -lX11 -lXext
 
 gimp_2_8_LDFLAGS = \
 	$(AM_LDFLAGS)		\

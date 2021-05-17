@@ -252,6 +252,7 @@ gimp_display_shell_canvas_expose (GtkWidget        *widget,
        */
       cr = gdk_cairo_create (gtk_widget_get_window (shell->canvas));
       gdk_cairo_region (cr, eevent->region);
+      cairo_set_source_rgba (cr, 0., 0., 0., 0.);
       cairo_clip (cr);
 
       if (gimp_display_get_image (shell->display))
@@ -464,6 +465,7 @@ gimp_display_shell_canvas_expose_image (GimpDisplayShell *shell,
    *  image, which is the exposed region minus the image rectangle
    */
 
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
   clear_region = gdk_region_copy (eevent->region);
 
   image_rect.x = - shell->offset_x;
